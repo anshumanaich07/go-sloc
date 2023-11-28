@@ -45,8 +45,12 @@ func (gosloc *GoSLOC) SaveOrDisplay(fp string, isDisp bool) error {
 
 	// add total
 	totalCont := fmt.Sprintf("\n%d %s %s", gosloc.Total, strings.Repeat("-", 30), "Total")
-	fmt.Println(totalCont)
-	file.WriteString(totalCont)
+	if isDisp {
+		fmt.Println(totalCont)
+	}
+	if fp != "" {
+		file.WriteString(totalCont)
+	}
 
 	return nil
 }
