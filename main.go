@@ -11,7 +11,7 @@ func main() {
 	dirPtr := flag.String("dir", ".", "dir path")
 	savePtr := flag.String("save", "", "file name to save")
 	dispPtr := flag.Bool("disp", true, "to display or not on stdout")
-	extsPtr := flag.String("exts", "", "',' separated extensions to allow")
+	extsPtr := flag.String("ext", "", "',' separated extensions to allow")
 	flag.Parse()
 
 	gsloc := gosloc.GoSLOC{}
