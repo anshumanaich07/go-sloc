@@ -18,3 +18,4 @@ To do:
   * How to handle folder containing large number of files?
   * Handle the total better?
   * Make it run on windows as well
+  * Add level wise recursive traversing?
