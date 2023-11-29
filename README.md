@@ -12,8 +12,9 @@ Working features:
   * Can count only certain file types if their extensions are provided
   * Save to file option 
   * Don't handle directories unnecessarily
+  * handle directories recursively
 
 To do:
   * How to handle folder containing large number of files?
+  * Handle the total better?
   * Make it run on windows as well
-  * handle directories recursively
