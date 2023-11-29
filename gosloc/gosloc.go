@@ -3,7 +3,6 @@ package gosloc
 import (
 	"bytes"
 	"fmt"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path"
@@ -13,10 +12,9 @@ import (
 )
 
 type GoSLOC struct {
-	Dir     string
-	Files   []fs.DirEntry
-	Results map[string]interface{}
-	Total   int
+	Dir       string
+	FilePaths map[string]interface{}
+	Total     int
 }
 
 func (gosloc *GoSLOC) SaveOrDisplay(fp string, isDisp bool) error {
@@ -33,7 +31,7 @@ func (gosloc *GoSLOC) SaveOrDisplay(fp string, isDisp bool) error {
 		defer file.Close()
 	}
 
-	for fp, lines := range gosloc.Results {
+	for fp, lines := range gosloc.FilePaths {
 		content := fmt.Sprintf("%d %s %s\n", lines, strings.Repeat("-", 30), fp)
 		if isDisp {
 			fmt.Print(content)
@@ -51,7 +49,6 @@ func (gosloc *GoSLOC) SaveOrDisplay(fp string, isDisp bool) error {
 	if fp != "" {
 		file.WriteString(totalCont)
 	}
-
 	return nil
 }
 
@@ -68,10 +65,34 @@ func contains(arr []string, v string) bool {
 	return false
 }
 
-func (gosloc *GoSLOC) Read(dir string) error {
+func (gosloc *GoSLOC) Recursive(dir string, rec bool, exts []string) error {
 	var err error
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		if !file.IsDir() && contains(exts, filepath.Ext(file.Name())) {
+			gosloc.FilePaths[filepath.Join(dir, file.Name())] = 0
+		}
+		if rec && file.IsDir() {
+			err = gosloc.Recursive(filepath.Join(dir, file.Name()), rec, exts)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (gosloc *GoSLOC) Read(dir string, rec bool, e string) error {
+	var exts []string
+	if e != "" {
+		exts = strings.Split(e, ",")
+	}
 	gosloc.Dir = dir
-	gosloc.Files, err = os.ReadDir(dir)
+	err := gosloc.Recursive(dir, rec, exts)
 	if err != nil {
 		return err
 	}
@@ -80,24 +101,13 @@ func (gosloc *GoSLOC) Read(dir string) error {
 
 // handle recursive
 func (gosloc *GoSLOC) Process(e string) error {
-	var exts []string
-	if e != "" {
-		exts = strings.Split(e, ",")
-	}
-
-	gosloc.Results = make(map[string]interface{})
-	for _, file := range gosloc.Files {
-		if !file.IsDir() {
-			if contains(exts, filepath.Ext(file.Name())) {
-				filePath := filepath.Join(gosloc.Dir, file.Name())
-				lines, err := getNumOfLines(filePath)
-				if err != nil {
-					return err
-				}
-				gosloc.Total += lines
-				gosloc.Results[filePath] = lines
-			}
+	for fp, _ := range gosloc.FilePaths {
+		lines, err := getNumOfLines(fp)
+		if err != nil {
+			return err
 		}
+		gosloc.Total += lines
+		gosloc.FilePaths[fp] = lines
 	}
 	return nil
 }
