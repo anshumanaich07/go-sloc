@@ -101,7 +101,7 @@ func (gosloc *GoSLOC) Read(dir string, rec bool, e string) error {
 
 // handle recursive
 func (gosloc *GoSLOC) Process(e string) error {
-	for fp, _ := range gosloc.FilePaths {
+	for fp := range gosloc.FilePaths {
 		lines, err := getNumOfLines(fp)
 		if err != nil {
 			return err
